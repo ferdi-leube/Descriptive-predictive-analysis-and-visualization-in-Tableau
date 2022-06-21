@@ -364,8 +364,9 @@ for x in payments['country code'].tolist():
     
 # upload csv
 
-payments.to_csv(r'C:\Users\leube\Ironhack\Ironprojects\Module_2\preped_data2.csv')
+payments.to_csv(r'C:\Users\leube\Ironhack\Ironprojects\Module_2\preped_data.csv')
 
+payments
 
 # find average transaction time
 
@@ -515,17 +516,26 @@ def predict_amount(year, month):
 # try
 predict_amount(2022,2)
 
-char = char.drop([11,12,13])
-char
+
 year = 2022
 months = [2,3,4]
 
 for month in months:
     char = char.append({'year': year,'month':month,'Initial Amount':predict_amount(year,month)}, ignore_index=True)
+    
+char
+
+char.to_csv(r'C:\Users\leube\Ironhack\Ironprojects\Module_2\initalam_forecast2.csv', index=False, sep=';')
 #checks
 
 payments ['month'] = payments['Date'].dt.month
 payments['month'].unique()
+
+
+# troubles forecast
+
+filteredtr = pivot[pivot['durration_format'] >= 2]
+filteredtr
 
 # total charges calculations 
 
@@ -540,3 +550,71 @@ calcs.shape
 calcs['end charges'] = calcs['Initial Amount'] * calcs['Charges']
 
 calcs.to_csv(r'C:\Users\leube\Ironhack\Ironprojects\Module_2\charges.csv')
+
+
+
+# check country creditor
+
+payments.pivot_table(index=['Creditor'], columns='country', aggfunc='count')
+
+
+
+# get current state of each individual transaction
+
+payments['Status'].unique()
+
+
+
+conditions3 = [payments['Status']=='NEW',
+               payments['Status']=='PENDING',
+               payments['Status']=='PROCESSING',
+               payments['Status']=='DELIVERED',
+               payments['Status']=='CANCELLED',
+               payments['Status']=='COMPLETED'
+]
+choices3 = [1,
+            2,
+            3,
+            4,
+            5,
+            6]
+payments['Status_encoded'] = np.select(conditions3, choices3, 'huge')
+
+payments.columns
+payments['Status_encoded']
+
+transactions = list(payments['unique ref + amount'].unique())
+currentstate = []
+for x in transactions:
+    filteredtr = payments[payments['unique ref + amount']==x]
+    current_status = filteredtr['Status_encoded'].max()
+    currentstate.append(current_status)
+    
+current_state_transactions = pd.DataFrame({'Transaction':transactions,'current_status':currentstate})
+current_state_transactions    
+
+conditions3 = [current_state_transactions['current_status']=='1',
+              current_state_transactions['current_status']=='2',
+              current_state_transactions['current_status']=='3',
+              current_state_transactions['current_status']=='4',
+              current_state_transactions['current_status']=='5',
+              current_state_transactions['current_status']=='6'
+              ]
+
+current_state_transactions['current_status'].unique()
+choices3 = ['NEW',
+            'PENDING',
+            'PROCESSING',
+            'DELIVERED',
+            'CANCELLED',
+            'COMPLETED']
+current_state_transactions['current_status_inverse'] = np.select(conditions3, choices3, 'huge')
+    
+current_state_transactions
+
+current_state_transactions.to_csv(r'C:\Users\leube\Ironhack\Ironprojects\Module_2\Descriptive-predictive-analysis-and-visualization-in-Tableau\status_current.csv') 
+    
+    
+    
+    
+    
